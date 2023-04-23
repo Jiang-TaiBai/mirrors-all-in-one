@@ -1,0 +1,318 @@
+<!-- 资料引用：
+1. (官方配置文件使用说明)
+https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.html
+2. 
+ -->
+<Page x:Class="Mirrors_All_in_One.View.PackageManagerCondaMirrorSettingPage"
+      x:Name="Page"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:Mirrors_All_in_One.View"
+      xmlns:hc="https://handyorg.github.io/handycontrol"
+      mc:Ignorable="d"
+      xmlns:mvm="clr-namespace:Mirrors_All_in_One.ViewModels"
+      xmlns:converters="clr-namespace:Mirrors_All_in_One.Converters"
+      d:DataContext="{d:DesignInstance mvm:MainViewModel, IsDesignTimeCreatable=True}"
+      Title="PackageManagerCondaMirrorSettingPage" Height="auto" Width="auto"
+      Loaded="Page_Loaded">
+    <Page.Resources>
+        <Style x:Key="ImageButton" TargetType="Button"
+               BasedOn="{StaticResource ButtonBaseStyle}">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand"></Setter>
+            <Setter Property="Foreground" Value="Black"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="0"
+                                CornerRadius="0"
+                                Width="{TemplateBinding Width}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 镜像列表样式 -->
+        <Style x:Key="PackageManagerItemButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Width" Value="100" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <converters:IsNotNullToBoolConverter x:Key="IsNotNullConverter" />
+    </Page.Resources>
+    <Grid Margin="10, 5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <!-- LOGO图片 -->
+        <Grid Grid.Row="0">
+            <Image Source="/Assets/logos/anaconda-logo.png" Height="50"
+                   RenderOptions.BitmapScalingMode="HighQuality"
+                   Margin="0,10">
+            </Image>
+        </Grid>
+        <!-- 备注设置 -->
+        <Grid Grid.Row="1" Margin="0, 5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="100" />
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="0" LastChildFill="True">
+                <TextBlock DockPanel.Dock="Left" Text="备注：" Width="60" TextAlignment="Right"
+                           VerticalAlignment="Center" />
+                <TextBox DockPanel.Dock="Right" Text="{Binding CurrentSelectedPackageManager.Remark}" />
+            </DockPanel>
+        </Grid>
+        <!-- 配置文件的目录设置 -->
+        <Grid Grid.Row="2" Margin="0, 5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="0" LastChildFill="True">
+                <TextBlock DockPanel.Dock="Left" Text="配置文件：" Width="60"
+                           TextAlignment="Right"
+                           VerticalAlignment="Center" />
+                <TextBox DockPanel.Dock="Right" Text="{Binding CurrentSelectedPackageManager.PropertyPath}" />
+            </DockPanel>
+            <StackPanel Grid.Column="1" Width="100" Orientation="Horizontal">
+                <Button Style="{StaticResource ButtonBaseStyle}"
+                        Width="40" Margin="2, 0, 0, 0"
+                        Background="White" Padding="0"
+                        Cursor="Hand">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/Assets/Icons/more.png" Width="20"
+                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+                <Button Width="30" Style="{StaticResource ImageButton}" Padding="5">
+                    <Button.Content>
+                        <Image Source="/Assets/Icons/right.png" Width="16"
+                               RenderOptions.BitmapScalingMode="HighQuality" />
+
+                    </Button.Content>
+                    <hc:Poptip.Instance>
+                        <hc:Poptip Content="解析成功！" PlacementType="TopLeft" Delay="0"
+                                   HorizontalOffset="-100" />
+                    </hc:Poptip.Instance>
+                </Button>
+            </StackPanel>
+
+        </Grid>
+        <!-- 镜像设置，包括启用的镜像和备用镜像仓库 -->
+        <Grid Grid.Row="3">
+            <TabControl Margin="0, 10" Style="{StaticResource TabControlInLine}">
+                <!-- 启用镜像 -->
+                <TabItem Header="启用镜像">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Background="White"
+                                    MinHeight="30" Margin="0,5">
+                            <!-- 工具栏 -->
+                            <!-- 多选框，可多选镜像仓库中的镜像添加 -->
+                            <hc:CheckComboBox x:Name="SelectToReadyEnableMirrorComboBox"
+                                              Style="{StaticResource CheckComboBoxExtend}" Width="300"
+                                              ItemsSource="{Binding PackageManagerCondaMirrorSettingPageViewModel.PackageManagerCondaMirrorRepository}"
+                                              DisplayMemberPath="DisplayName" SelectedValuePath="Channel"
+                                              hc:InfoElement.Placeholder="请选择待添加的镜像"
+                                              SelectedItem="{Binding PackageManagerCondaMirrorSettingPageViewModel.SelectedPackageManagerCondaMirrorOptions}"
+                                              ShowClearButton="True" ShowSelectAllButton="True" MaxDropDownHeight="500" />
+                            <!-- 添加镜像按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    Click="AddChannelToEnabledChannelList">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/add.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 删除镜像按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/reduce.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 修改镜像按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/edit.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 上移选中的按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    CommandParameter="UP">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/up.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 下移选中的按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    CommandParameter="DOWN">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/down.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                        <!--CurrentSelectedPackageManager.Channels为ObservableCollection<Mirror>类型-->
+                        <ListBox Grid.Row="1" ItemsSource="{Binding Path=CurrentSelectedPackageManager.Channels}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,5">
+                                        <TextBlock Text="{Binding DisplayName}" >
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Grid>
+                </TabItem>
+                <!-- 镜像库 -->
+                <TabItem Header="镜像库">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <!-- 工具栏 -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left" Background="White"
+                                    MinHeight="30" Margin="0,5">
+                            <!-- 添加镜像按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    Cursor="Hand"
+                                    Click="AddMirrorToRepository">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/add.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 删除镜像按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    Cursor="Hand" Click="DeleteMirrorFromRepository"
+                                    IsEnabled="{Binding SelectedItem, 
+                                                ElementName=PackageManagerCondaMirrorRepositoryListBox, 
+                                                Converter={StaticResource IsNotNullConverter}}">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/reduce.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 修改镜像按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    Cursor="Hand" Click="ModifyMirrorInfoFromRepository"
+                                    IsEnabled="{Binding SelectedItem, 
+                                                ElementName=PackageManagerCondaMirrorRepositoryListBox, 
+                                                Converter={StaticResource IsNotNullConverter}}">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/edit.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 上移选中的按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    Cursor="Hand"
+                                    Click="ShiftMirrorFromRepository"
+                                    IsEnabled="{Binding SelectedItem, 
+                                                ElementName=PackageManagerCondaMirrorRepositoryListBox, 
+                                                Converter={StaticResource IsNotNullConverter}}"
+                                    CommandParameter="UP">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/up.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                            <!-- 下移选中的按钮 -->
+                            <Button Width="30" BorderThickness="0" Padding="5"
+                                    Cursor="Hand"
+                                    Click="ShiftMirrorFromRepository"
+                                    IsEnabled="{Binding SelectedItem, 
+                                                ElementName=PackageManagerCondaMirrorRepositoryListBox, 
+                                                Converter={StaticResource IsNotNullConverter}}"
+                                    CommandParameter="DOWN">
+                                <Button.Content>
+                                    <Image Source="/Assets/Icons/down.png" Width="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality" />
+                                </Button.Content>
+                            </Button>
+                        </StackPanel>
+                        <Grid Grid.Row="1">
+                            <ListBox x:Name="PackageManagerCondaMirrorRepositoryListBox"
+                                     ItemsSource="{Binding PackageManagerCondaMirrorSettingPageViewModel.PackageManagerCondaMirrorRepository}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,5">
+                                            <TextBlock TextWrapping="Wrap" Text="{Binding DisplayName}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+                <!-- 附加功能 -->
+                <TabItem Header="附加功能">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0" Margin="0, 5">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Left" Width="120"
+                                           TextAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           Text="验证镜像SSL证书：" />
+                                <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleButtonSwitch}"
+                                              HorizontalAlignment="Left" VerticalAlignment="Center"
+                                              IsChecked="{Binding CurrentSelectedPackageManager.SslVerify}" />
+                            </DockPanel>
+                        </Grid>
+                        <Grid Grid.Row="1" Margin="0, 5">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock DockPanel.Dock="Left" Width="120"
+                                           TextAlignment="Right"
+                                           VerticalAlignment="Center"
+                                           Text="安装包时默认同意：" />
+                                <ToggleButton DockPanel.Dock="Right" Style="{StaticResource ToggleButtonSwitch}"
+                                              HorizontalAlignment="Left" VerticalAlignment="Center"
+                                              IsChecked="{Binding CurrentSelectedPackageManager.AlwaysYes}" />
+                            </DockPanel>
+                        </Grid>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Grid>
+
+    </Grid>
+</Page>
