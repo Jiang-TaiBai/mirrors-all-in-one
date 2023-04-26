@@ -36,7 +36,7 @@ namespace Mirrors_All_in_One.UserControls
         /// <summary>
         /// 已经存在的镜像路径，不允许重复添加
         /// </summary>
-        private readonly HashSet<string> _existingMirrorsPath;
+        private readonly HashSet<string> _notAllowDuplicateMirrorChannelList;
 
         public string MirrorPath
         {
@@ -74,9 +74,9 @@ namespace Mirrors_All_in_One.UserControls
                 return;
             }
 
-            if (_existingMirrorsPath.Contains(MirrorPath.Trim()))
+            if (_notAllowDuplicateMirrorChannelList.Contains(MirrorPath.Trim()))
             {
-                MessageBox.Show($"已添加相同的镜像：{MirrorPath}，不允许被重复添加", "提示", MessageBoxButton.OK,
+                MessageBox.Show($"镜像仓库已添加相同的镜像：{MirrorPath}，不允许被重复添加", "提示", MessageBoxButton.OK,
                     MessageBoxImage.Exclamation);
                 return;
             }
@@ -95,11 +95,11 @@ namespace Mirrors_All_in_One.UserControls
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="existingMirrorsPath">出现在这里的Mirror都不允许被添加</param>
-        public EditMirrorDialog(HashSet<string> existingMirrorsPath)
+        /// <param name="notAllowDuplicateMirrorChannelList">出现在这里的Mirror都不允许被添加</param>
+        public EditMirrorDialog(HashSet<string> notAllowDuplicateMirrorChannelList)
         {
             InitializeComponent();
-            this._existingMirrorsPath = existingMirrorsPath;
+            this._notAllowDuplicateMirrorChannelList = notAllowDuplicateMirrorChannelList;
             // 获取 NavigationWindow 或 Frame 实例
             if (Application.Current.Windows
                     .Cast<Window>()

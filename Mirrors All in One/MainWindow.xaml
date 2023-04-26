@@ -17,48 +17,55 @@ https://blog.csdn.net/weixin_42930928/article/details/118680626
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance mvm:MainViewModel, IsDesignTimeCreatable=True}"
         Title="Mirrors All in One" Height="550" Width="750"
-        Unloaded="MainWindow_OnUnloaded">
+        Loaded="MainWindow_Onloaded">
     <Window.Resources>
-        <!-- <presentation:DynamicResourceExtension x:Key="PackageManagerList" ResourceKey="PackageManagerList" /> -->
-        <!-- <mvm:MainViewModel x:Key="Mvm" /> -->
-        <!-- 在工具栏打开的PackageManagerSupportedListMenu中，每一项的样式 -->
-        <Style x:Key="SupportedPackageManagerItemButtonStyle" TargetType="Button"
-               BasedOn="{StaticResource {x:Type Button}}">
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Width" Value="100" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                Padding="{TemplateBinding Padding}"
-                                CornerRadius="0">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <!-- 已添加的包管理器列表中，每一项的样式 -->
-        <Style x:Key="AddedPackageManagerListBoxItemStyle" TargetType="{x:Type ListBoxItem}"
-               BasedOn="{StaticResource ListBoxItemBaseStyle}">
-            <!-- <Setter Property="Foreground" Value="Black" /> -->
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="#CBDEF6" />
-                    <Setter Property="Foreground" Value="Black" />
-                </Trigger>
-                <Trigger Property="IsSelected" Value="False">
-                    <Setter Property="Foreground" Value="Black" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="AddedPackageManagerListBoxStyle" TargetType="{x:Type ListBox}"
-               BasedOn="{StaticResource ListBoxBaseStyle}">
-            <Setter Property="ItemContainerStyle" Value="{StaticResource AddedPackageManagerListBoxItemStyle}" />
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/SvgIconResource.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- <presentation:DynamicResourceExtension x:Key="PackageManagerList" ResourceKey="PackageManagerList" /> -->
+            <!-- <mvm:MainViewModel x:Key="Mvm" /> -->
+            <!-- 在工具栏打开的PackageManagerSupportedListMenu中，每一项的样式 -->
+            <Style x:Key="SupportedPackageManagerItemButtonStyle" TargetType="Button"
+                   BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Width" Value="100" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    Padding="{TemplateBinding Padding}"
+                                    CornerRadius="0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <!-- 已添加的包管理器列表中，每一项的样式 -->
+            <Style x:Key="AddedPackageManagerListBoxItemStyle" TargetType="{x:Type ListBoxItem}"
+                   BasedOn="{StaticResource ListBoxItemBaseStyle}">
+                <!-- <Setter Property="Foreground" Value="Black" /> -->
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="#CBDEF6" />
+                        <Setter Property="Foreground" Value="Black" />
+                    </Trigger>
+                    <Trigger Property="IsSelected" Value="False">
+                        <Setter Property="Foreground" Value="Black" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <Style x:Key="AddedPackageManagerListBoxStyle" TargetType="{x:Type ListBox}"
+                   BasedOn="{StaticResource ListBoxBaseStyle}">
+                <Setter Property="ItemContainerStyle" Value="{StaticResource AddedPackageManagerListBoxItemStyle}" />
+            </Style>
+        </ResourceDictionary>
+
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

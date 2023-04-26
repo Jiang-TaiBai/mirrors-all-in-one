@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Documents;
 using Mirrors_All_in_One.Common;
+using Mirrors_All_in_One.Enums;
+using Mirrors_All_in_One.Utils;
 using Mirrors_All_in_One.ViewModels;
 
 namespace Mirrors_All_in_One.Data
@@ -20,7 +22,9 @@ namespace Mirrors_All_in_One.Data
 
         private string _userDataPath;
 
-        public readonly DataPackageManagerMirrorRepositoryUtil DataPackageManagerMirrorRepositoryUtil;
+        public readonly DataMirrorRepositoryUtil DataMirrorRepositoryUtil;
+
+        public readonly DataPackageManagerUtil DataPackageManagerUtil;
 
         /// <summary>
         /// 单例模式
@@ -34,20 +38,23 @@ namespace Mirrors_All_in_One.Data
 
         /// <summary>
         /// 设置保存数据的所在文件夹
+        /// 目前并未提供修改配置文件的文件夹功能，因此先设置为private
         /// </summary>
         /// <param name="userDataPath"></param>
-        public void SetUserDataPath(string userDataPath)
+        private void SetUserDataPath(string userDataPath)
         {
             _userDataPath = userDataPath;
             // 更新 包管理器镜像仓库数据
             // 操作1：修改保存地址
             // 操作2：删除原来的数据文件
             // 操作3：重新保存数据
-            DataPackageManagerMirrorRepositoryUtil.UserDataPath = userDataPath;
-            DataPackageManagerMirrorRepositoryUtil.DeleteDataFile();
-            DataPackageManagerMirrorRepositoryUtil.SaveData();
-        }
+            DataMirrorRepositoryUtil.UserDataPath = userDataPath;
+            DataMirrorRepositoryUtil.DeleteDataFile();
+            DataMirrorRepositoryUtil.SaveData();
 
+            // 更新 包管理器数据
+            DataPackageManagerUtil.UserDataPath = userDataPath;
+        }
 
         /// <summary>
         /// 将Mirror列表转换成字典，key为channel，value为Mirror
@@ -67,181 +74,41 @@ namespace Mirrors_All_in_One.Data
 
         private UserDataUtil()
         {
-            _userDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            DataPackageManagerMirrorRepositoryUtil = new DataPackageManagerMirrorRepositoryUtil(_userDataPath);
-        }
-    }
+            // 方案一：使用用户的AppData文件夹
+            // 优点：可以确保用户有权限访问
+            // 缺点：用户可能不知道数据文件在哪里
+            // _userDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Mirrors All in One");
 
-    /// <summary>
-    /// 序列化仓库数据工具
-    /// </summary>
-    public class DataPackageManagerMirrorRepositoryUtil
-    {
-        /// <summary>
-        /// 用户保存数据路径
-        /// </summary>
-        public string UserDataPath;
+            // 方案二：使用程序所在文件夹
+            // 优点：用户知道数据文件在哪里
+            // 缺点：用户可能没有权限访问
+            _userDataPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data");
 
-        /// <summary>
-        /// 仓库数据
-        /// </summary>
-        public DataPackageManagerMirrorRepository DataPackageManagerMirrorRepository =
-            new DataPackageManagerMirrorRepository();
-
-        /// <summary>
-        /// 用户保存数据的文件名
-        /// </summary>
-        private readonly string _filename = "MirrorsAllInOneDataFile-PackageManagerMirrorRepository.txt";
-
-        private string AbsolutePath => Path.Combine(UserDataPath, _filename);
-
-        public DataPackageManagerMirrorRepositoryUtil(string userDataPath)
-        {
-            ChangeUserDataPath(userDataPath);
-        }
-
-        /// <summary>
-        /// 改变用户数据所在文件夹，并且自动更新数据
-        /// </summary>
-        /// <param name="userDataPath">用户数据所在文件夹</param>
-        private void ChangeUserDataPath(string userDataPath)
-        {
-            UserDataPath = userDataPath;
-            LoadData();
-        }
-
-        /// <summary>
-        /// 从数据文件中加载数据
-        /// </summary>
-        private void LoadData()
-        {
-            string jsonData = "";
+            // 解决方案：如果用户没有权限访问程序所在文件夹，则使用默认数据文件夹
             try
             {
-                jsonData = File.ReadAllText(AbsolutePath);
-                // 从 JSON 文件反序列化为对象
-                DataPackageManagerMirrorRepository data =
-                    JsonSerializer.Deserialize<DataPackageManagerMirrorRepository>(jsonData);
-                if (data != null)
+                if (!Directory.Exists(_userDataPath))
                 {
-                    DataPackageManagerMirrorRepository = data;
-                }
-                else
-                {
-                    DataPackageManagerMirrorRepository = new DataPackageManagerMirrorRepository();
+                    Directory.CreateDirectory(_userDataPath);
                 }
             }
-            catch (FileNotFoundException)
+            catch (UnauthorizedAccessException e)
             {
-                DataPackageManagerMirrorRepository = new DataPackageManagerMirrorRepository();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "获取数据文件时错误");
-            }
-        }
-
-        /// <summary>
-        /// 序列化镜像仓库到文件
-        /// </summary>
-        public void SaveData()
-        {
-            var options = new JsonSerializerOptions { WriteIndented = true };
-
-            Dictionary<string, List<SerializableMirror>> data = new Dictionary<string, List<SerializableMirror>>()
-            {
-                { "CondaMirrorRepository", new List<SerializableMirror>() },
-                { "NpmMirrorRepository", new List<SerializableMirror>() },
-                { "PipMirrorRepository", new List<SerializableMirror>() },
-            };
-            foreach (Mirror mirror in DataPackageManagerMirrorRepository.CondaMirrorRepository)
-            {
-                data["CondaMirrorRepository"].Add(new SerializableMirror(mirror));
-            }
-
-            foreach (Mirror mirror in DataPackageManagerMirrorRepository.NpmMirrorRepository)
-            {
-                data["CondaMirrorRepository"].Add(new SerializableMirror(mirror));
-            }
-
-            foreach (Mirror mirror in DataPackageManagerMirrorRepository.PipMirrorRepository)
-            {
-                data["CondaMirrorRepository"].Add(new SerializableMirror(mirror));
-            }
-
-            string jsonData = JsonSerializer.Serialize(data, options);
-            try
-            {
-                StreamWriter sw = new StreamWriter(Path.Combine(UserDataPath, _filename));
-                sw.WriteLine(jsonData);
-                sw.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                MessageBox.Show(e.Message, "存储数据文件时错误");
-            }
-        }
-
-        /// <summary>
-        /// 从数据文件中加载数据，与LoadData同样的目的
-        /// 区别一：对外只能刷新，并非初始化加载，命名更友好。
-        /// 区别二：LoadData为private，RefreshData为public
-        /// </summary>
-        public void RefreshData()
-        {
-            LoadData();
-        }
-
-        /// <summary>
-        /// 删除数据文件
-        /// </summary>
-        public void DeleteDataFile()
-        {
-            // 1、首先判断文件或者文件路径是否存在
-            if (File.Exists(AbsolutePath))
-            {
-                // 2、根据路径字符串判断是文件还是文件夹
-                FileAttributes attr = File.GetAttributes(AbsolutePath);
-                // 3、确认是文件才删除
-                if (attr != FileAttributes.Directory)
+                MessageBox.Show("无法访问数据文件夹，请检查是否有权限访问当前程序所在文件夹", "错误", MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                _userDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Mirrors All in One");
+                // 告知用户已使用默认数据文件夹
+                MessageBox.Show($"由于无权限访问当前程序所在文件夹，已使用默认数据文件夹：{_userDataPath}", "提示", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                if (!Directory.Exists(_userDataPath))
                 {
-                    File.Delete(AbsolutePath);
+                    Directory.CreateDirectory(_userDataPath);
                 }
             }
+
+            DataMirrorRepositoryUtil = new DataMirrorRepositoryUtil(_userDataPath);
+            DataPackageManagerUtil = new DataPackageManagerUtil(_userDataPath);
         }
-
-        class SerializableMirror
-        {
-            public string Channel { get; set; }
-            public string Remark { get; set; }
-
-            public SerializableMirror(Mirror mirror)
-            {
-                Channel = mirror.Channel;
-                Remark = mirror.Remark;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 所有包管理器的镜像数据
-    /// </summary>
-    public class DataPackageManagerMirrorRepository
-    {
-        /// <summary>
-        /// Conda的镜像仓库列表
-        /// </summary>
-        public List<Mirror> CondaMirrorRepository { get; set; } = new List<Mirror>();
-
-        /// <summary>
-        /// Npm的镜像仓库列表
-        /// </summary>
-        public List<Mirror> NpmMirrorRepository { get; set; } = new List<Mirror>();
-
-        /// <summary>
-        /// Pip的镜像仓库列表
-        /// </summary>
-        public List<Mirror> PipMirrorRepository { get; set; } = new List<Mirror>();
     }
 }

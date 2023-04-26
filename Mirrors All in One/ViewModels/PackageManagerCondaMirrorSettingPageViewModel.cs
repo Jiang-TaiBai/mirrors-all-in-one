@@ -26,39 +26,39 @@ namespace Mirrors_All_in_One.ViewModels
             get
             {
                 return new ObservableCollection<Mirror>(UserDataUtil.GetInstance()
-                    .DataPackageManagerMirrorRepositoryUtil.DataPackageManagerMirrorRepository.CondaMirrorRepository);
+                    .DataMirrorRepositoryUtil.DataPackageManagerMirrorRepository.CondaMirrorRepository);
             }
             set
             {
                 // 修改并保存
                 UserDataUtil.GetInstance()
-                    .DataPackageManagerMirrorRepositoryUtil.DataPackageManagerMirrorRepository
+                    .DataMirrorRepositoryUtil.DataPackageManagerMirrorRepository
                     .CondaMirrorRepository = new List<Mirror>(value);
-                UserDataUtil.GetInstance().DataPackageManagerMirrorRepositoryUtil.SaveData();
+                UserDataUtil.GetInstance().DataMirrorRepositoryUtil.SaveData();
                 RaisePropertyChanged();
             }
         }
 
         /// <summary>
-        /// 已选择的镜像，用于保存"待"激活的镜像列表
+        /// 已选择的镜像，用于保存"待"激活的镜像列表。
+        /// 不设置此项，直接从控件中获取
         /// </summary>
-        private ObservableCollection<Mirror> _selectedPackageManagerCondaMirrorOptions =
-            new ObservableCollection<Mirror>();
-
+        // private ObservableCollection<Mirror> _selectedPackageManagerCondaMirrorOptions =
+        //     new ObservableCollection<Mirror>();
         public PackageManagerCondaMirrorSettingPageViewModel(MainWindow mainWindow)
         {
             MainWindow = mainWindow;
         }
 
 
-        public ObservableCollection<Mirror> SelectedPackageManagerCondaMirrorOptions
-        {
-            get => _selectedPackageManagerCondaMirrorOptions;
-            set
-            {
-                _selectedPackageManagerCondaMirrorOptions = value;
-                RaisePropertyChanged();
-            }
-        }
+        // public ObservableCollection<Mirror> SelectedPackageManagerCondaMirrorOptions
+        // {
+        //     get => _selectedPackageManagerCondaMirrorOptions;
+        //     set
+        //     {
+        //         _selectedPackageManagerCondaMirrorOptions = value;
+        //         RaisePropertyChanged();
+        //     }
+        // }
     }
 }

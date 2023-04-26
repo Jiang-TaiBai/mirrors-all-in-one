@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -8,6 +10,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using HandyControl.Controls;
 using Mirrors_All_in_One.Common;
+using Mirrors_All_in_One.Data;
 using Mirrors_All_in_One.Enums;
 using Mirrors_All_in_One.Utils;
 using MessageBox = HandyControl.Controls.MessageBox;
@@ -32,6 +35,11 @@ namespace Mirrors_All_in_One.ViewModels
         /// 当前所选择的包管理工具对象
         /// </summary>
         private PackageManagerBase _currentSelectedPackageManager;
+
+        /// <summary>
+        /// 表示当前包管理器的配置是否发生了变化
+        /// </summary>
+        private bool _hasChanged = false;
 
         /// <summary>
         /// Conda页面的ViewModel
@@ -94,16 +102,33 @@ namespace Mirrors_All_in_One.ViewModels
             }
         }
 
+        public bool HasChanged
+        {
+            get => _hasChanged;
+            set
+            {
+                _hasChanged = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public MainViewModel(MainWindow mainWindow)
         {
             MainWindow = mainWindow;
-            PackageManagerList = new ObservableCollection<PackageManagerBase>()
+            PackageManagerList = new ObservableCollection<PackageManagerBase>();
+            IList<DataPackageManagerBase> dataPackageManagerBaseList = UserDataUtil.GetInstance().DataPackageManagerUtil
+                .DataPackageManagers;
+            foreach (DataPackageManagerBase dataPackageManager in dataPackageManagerBaseList.ToArray())
             {
-                // TODO:测试数据，以后要从配置文件中加载
-                new PackageManagerConda("第1个镜像"),
-                new PackageManagerNpm("第2个镜像"),
-                new PackageManagerPip("第3个镜像"),
-            };
+                PackageManagerList.Add(PackageManagerBase.ToPackageManagerBase(dataPackageManager));
+            }
+
+            // {
+            //     // TODO:测试数据，以后要从配置文件中加载
+            //     new PackageManagerConda(Guid.NewGuid().ToString(), "第1个镜像"),
+            //     new PackageManagerNpm(Guid.NewGuid().ToString(), "第2个镜像"),
+            //     new PackageManagerPip(Guid.NewGuid().ToString(), "第3个镜像"),
+            // };
             PackageManagerCondaMirrorSettingPageViewModel =
                 new PackageManagerCondaMirrorSettingPageViewModel(mainWindow);
         }
@@ -118,19 +143,20 @@ namespace Mirrors_All_in_One.ViewModels
             switch (packageManagerType)
             {
                 case "Conda":
-                    PackageManagerList.Add(new PackageManagerConda());
+                    PackageManagerList.Add(new PackageManagerConda(Guid.NewGuid().ToString()));
                     break;
                 case "Npm":
-                    PackageManagerList.Add(new PackageManagerNpm());
+                    PackageManagerList.Add(new PackageManagerNpm(Guid.NewGuid().ToString()));
                     break;
                 case "Pip":
-                    PackageManagerList.Add(new PackageManagerPip());
+                    PackageManagerList.Add(new PackageManagerPip(Guid.NewGuid().ToString()));
                     break;
                 default:
                     break;
             }
 
             if (MainWindow.FindName("PackageManagerSupportedListMenu") is Popup popup) popup.IsOpen = false;
+            UserDataUtil.GetInstance().DataPackageManagerUtil.SaveData(PackageManagerList);
         }
 
         /// <summary>
@@ -168,6 +194,8 @@ namespace Mirrors_All_in_One.ViewModels
                         MainWindow.LoadPackageManagerSettingPage(PackageManagerType.None);
                     }
                 }
+
+                UserDataUtil.GetInstance().DataPackageManagerUtil.SaveData(PackageManagerList);
             }
         }
 
@@ -214,6 +242,9 @@ namespace Mirrors_All_in_One.ViewModels
                 // 那么就加载相对应的管理页面到PackageManagerSettingPage
                 MainWindow.LoadPackageManagerSettingPage(item.Type);
             }
+
+            // 将顺序变化后的数据保存到配置文件中
+            UserDataUtil.GetInstance().DataPackageManagerUtil.SaveData(PackageManagerList);
         }
     }
 }

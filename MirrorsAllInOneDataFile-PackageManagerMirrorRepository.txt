@@ -1,0 +1,34 @@
+{
+  "CondaMirrorRepository": [
+    {
+      "Channel": "https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main",
+      "Remark": "\u6E05\u534E\u955C\u50CF\u6E90main"
+    },
+    {
+      "Channel": "https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r",
+      "Remark": "1\u6E05\u534E\u955C\u50CF\u6E90"
+    },
+    {
+      "Channel": "https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2",
+      "Remark": "\u6E05\u534E\u955C\u50CF\u6E90msys2"
+    },
+    {
+      "Channel": "123",
+      "Remark": "123"
+    },
+    {
+      "Channel": "https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud",
+      "Remark": "\u6E05\u534E\u955C\u50CF\u6E90pytorch"
+    },
+    {
+      "Channel": "defaults",
+      "Remark": "\u9ED8\u8BA4"
+    },
+    {
+      "Channel": "defaults_backup",
+      "Remark": "\u9ED8\u8BA41"
+    }
+  ],
+  "NpmMirrorRepository": [],
+  "PipMirrorRepository": []
+}

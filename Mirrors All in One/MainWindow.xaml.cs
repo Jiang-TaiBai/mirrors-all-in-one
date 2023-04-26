@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Media;
 using GalaSoft.MvvmLight;
 using Mirrors_All_in_One.Common;
 using Mirrors_All_in_One.Data;
@@ -27,6 +28,12 @@ namespace Mirrors_All_in_One
         public MainWindow()
         {
             InitializeComponent();
+            // 将资源设置为窗口图标
+            if (FindResource("LogoMirrorsAllInOneTaskbar") is DrawingImage iconResource)
+            {
+                Icon = iconResource;
+            }
+
             MainViewModel = new MainViewModel(this);
             DataContext = MainViewModel;
         }
@@ -74,6 +81,11 @@ namespace Mirrors_All_in_One
                     // 那么就加载相对应的管理页面到PackageManagerSettingPage
                     LoadPackageManagerSettingPage(item.Type);
                 }
+            }
+            else
+            {
+                // 如果没有任何一个包管理工具，那么就加载一个空的页面PackageManagerNoneSettingPage
+                LoadPackageManagerSettingPage(PackageManagerType.None);
             }
         }
 
@@ -127,7 +139,7 @@ namespace Mirrors_All_in_One
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void MainWindow_OnUnloaded(object sender, RoutedEventArgs e)
+        private void MainWindow_Onloaded(object sender, RoutedEventArgs e)
         {
             // 1. 加载数据文件：只需要实例化即可，数据自动加载
             UserDataUtil.GetInstance();

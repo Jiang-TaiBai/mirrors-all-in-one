@@ -36,20 +36,22 @@ namespace Mirrors_All_in_One.Common
 
         public string Channel
         {
-            get => _channel.Trim();
+            get => _channel == null ? "" : _channel.Trim();
             set
             {
                 _channel = value;
+                DisplayName = Remark.Trim() != "" ? $"({Remark}){Channel}" : Channel;
                 RaisePropertyChanged();
             }
         }
 
         public string Remark
         {
-            get => _remark;
+            get => _remark == null ? "" : _remark.Trim();
             set
             {
                 _remark = value;
+                DisplayName = Remark.Trim() != "" ? $"({Remark}){Channel}" : Channel;
                 RaisePropertyChanged();
             }
         }

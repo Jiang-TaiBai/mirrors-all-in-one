@@ -103,9 +103,13 @@
         </ApplicationDefinition>
         <Compile Include="Src\Common\Mirror.cs" />
         <Compile Include="Src\Common\PackageManager.cs" />
+        <Compile Include="Src\Converters\EnumToVisibilityConverter.cs" />
         <Compile Include="Src\Converters\IsNotNullToBoolConverter.cs" />
+        <Compile Include="Src\Data\DataPackageManager.cs" />
+        <Compile Include="Src\Data\DataMirrorRepository.cs" />
         <Compile Include="Src\Data\UserData.cs" />
         <Compile Include="Src\Enums\PackageManagerType.cs" />
+        <Compile Include="Src\Utils\FileUtil.cs" />
         <Compile Include="Src\Utils\ObservableCollectionUtil.cs" />
         <Compile Include="UserControls\EditMirrorDialog.xaml.cs">
           <DependentUpon>EditMirrorDialog.xaml</DependentUpon>
@@ -136,6 +140,7 @@
             <DependentUpon>MainWindow.xaml</DependentUpon>
             <SubType>Code</SubType>
         </Compile>
+        <Page Include="Resources\SvgIconResource.xaml" />
         <Page Include="UserControls\EditMirrorDialog.xaml" />
         <Page Include="View\PackageManagerCondaMirrorSettingPage.xaml" />
         <Page Include="View\PackageManagerNoneMirrorSettingPage.xaml" />
@@ -185,6 +190,12 @@
     </ItemGroup>
     <ItemGroup>
       <Resource Include="Assets\Icons\edit.png" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="Assets\icons-svg\Success.svg" />
+      <Content Include="Assets\icons-svg\Warning.svg" />
+      <Content Include="Assets\icons-svg\Error.svg" />
+      <Content Include="Assets\icons-svg\Help.svg" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -3,21 +3,30 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
 using GalaSoft.MvvmLight;
 using Mirrors_All_in_One.Data;
 using Mirrors_All_in_One.Enums;
+using Mirrors_All_in_One.Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using static Mirrors_All_in_One.Common.CondaPropertyState;
 
 namespace Mirrors_All_in_One.Common
 {
     /// <summary>
     /// 包管理工具基本类
     /// </summary>
-    public class PackageManagerBase : ViewModelBase
+    public abstract class PackageManagerBase : ViewModelBase
     {
         /// <summary>
-        /// 镜像的类型
+        /// 该包管理工具的UUID
+        /// </summary>
+        private string _uuid;
+
+        /// <summary>
+        /// 包管理工具的类型
         /// </summary>
         private PackageManagerType _type;
 
@@ -33,6 +42,16 @@ namespace Mirrors_All_in_One.Common
         /// </summary>
         private string _displayName;
 
+        public string Uuid
+        {
+            get => _uuid;
+            set
+            {
+                _uuid = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public PackageManagerType Type
         {
             get => _type;
@@ -45,11 +64,13 @@ namespace Mirrors_All_in_One.Common
 
         public string Remark
         {
-            get => _remark;
+            get => _remark ?? "";
             set
             {
                 _remark = value;
                 this.DisplayName = Remark != "" ? $"{Type.ToString()}({Remark})" : Type.ToString();
+                // 同时保存到配置文件
+                UserDataUtil.GetInstance().DataPackageManagerUtil.ModifyPackageManager(this);
                 RaisePropertyChanged();
             }
         }
@@ -65,10 +86,26 @@ namespace Mirrors_All_in_One.Common
             }
         }
 
-        protected PackageManagerBase(PackageManagerType type, string remark)
+        protected PackageManagerBase(string uuid, PackageManagerType type, string remark)
         {
+            _uuid = uuid;
             _type = type;
             _remark = remark;
+        }
+
+        public static PackageManagerBase ToPackageManagerBase(DataPackageManagerBase dataPackageManagerBase)
+        {
+            switch (dataPackageManagerBase)
+            {
+                case DataPackageManagerConda dataPackageManagerConda:
+                    return new PackageManagerConda(dataPackageManagerConda);
+                case DataPackageManagerNpm dataPackageManagerNpm:
+                    return new PackageManagerNpm(dataPackageManagerNpm);
+                case DataPackageManagerPip dataPackageManagerPip:
+                    return new PackageManagerPip(dataPackageManagerPip);
+            }
+
+            return null;
         }
     }
 
@@ -120,7 +157,7 @@ namespace Mirrors_All_in_One.Common
 
         /// <summary>
         /// Conda配置项：(bool)always_yes=false
-        /// 当被要求继续时，选择yes选项，例如在安装时。与在命令行中使用——yes标志相同。默认为False。
+        /// 当被要求继续时，总是选择yes选项，例如在安装时。与在命令行中使用——yes标志相同。默认为False。
         /// Choose the yes option whenever asked to proceed, such as when installing. Same as using the --yes flag at the command line. The default is False.
         /// </summary>
         private bool _alwaysYes = false;
@@ -131,6 +168,8 @@ namespace Mirrors_All_in_One.Common
             set
             {
                 _propertyPath = value;
+                // 同时保存到配置文件
+                UserDataUtil.GetInstance().DataPackageManagerUtil.ModifyPackageManager(this);
                 RaisePropertyChanged();
             }
         }
@@ -150,7 +189,7 @@ namespace Mirrors_All_in_One.Common
             get
             {
                 // 从镜像仓库中加载备注
-                List<Mirror> condaMirrorRepository = UserDataUtil.GetInstance().DataPackageManagerMirrorRepositoryUtil
+                List<Mirror> condaMirrorRepository = UserDataUtil.GetInstance().DataMirrorRepositoryUtil
                     .DataPackageManagerMirrorRepository
                     .CondaMirrorRepository;
                 Dictionary<string, Mirror> dictionary =
@@ -178,6 +217,7 @@ namespace Mirrors_All_in_One.Common
             set
             {
                 _showChannelUrls = value;
+                SaveOthersToPropertyFile();
                 RaisePropertyChanged();
             }
         }
@@ -188,6 +228,7 @@ namespace Mirrors_All_in_One.Common
             set
             {
                 _sslVerify = value;
+                SaveOthersToPropertyFile();
                 RaisePropertyChanged();
             }
         }
@@ -198,11 +239,13 @@ namespace Mirrors_All_in_One.Common
             set
             {
                 _alwaysYes = value;
+                SaveOthersToPropertyFile();
                 RaisePropertyChanged();
             }
         }
 
-        public PackageManagerConda(string remark = "", string path = "") : base(PackageManagerType.Conda, remark)
+        public PackageManagerConda(string uuid, string remark = "", string path = "") : base(uuid,
+            PackageManagerType.Conda, remark)
         {
             if (path.Equals(""))
             {
@@ -213,7 +256,14 @@ namespace Mirrors_All_in_One.Common
             _propertyPath = path;
 
             // 每次应当从Path中读取，而非上次保存的数据，确保拿去的信息为最新的
-            PropertyFileState = LoadProperty();
+            LoadProperty();
+        }
+
+        public PackageManagerConda(DataPackageManagerConda dataPackageManagerConda) : base(
+            dataPackageManagerConda.Uuid, PackageManagerType.Conda, dataPackageManagerConda.Remark)
+        {
+            PropertyPath = dataPackageManagerConda.PropertyFilePath;
+            LoadProperty();
         }
 
         /// <summary>
@@ -222,7 +272,7 @@ namespace Mirrors_All_in_One.Common
         /// <returns>
         /// CondaPropertyState类型，需要确保调用此方法要接收解析结果
         /// </returns>
-        private CondaPropertyState LoadProperty()
+        private bool LoadProperty()
         {
             // 准备工作1：初始化yaml文件解析器
             var deserializer = new DeserializerBuilder()
@@ -237,7 +287,8 @@ namespace Mirrors_All_in_One.Common
             catch (Exception e)
             {
                 Debug.WriteLine(e);
-                return CondaPropertyState.NotFound;
+                PropertyFileState = FileError;
+                return false;
             }
 
             // 准备工作3：解析yaml文本为字典对象
@@ -249,18 +300,22 @@ namespace Mirrors_All_in_One.Common
             catch (Exception e)
             {
                 Debug.WriteLine(e);
-                return CondaPropertyState.Error;
+                PropertyFileState = Error;
+                return false;
             }
+
+            // 检查dictionary是否为空，如果为空，则说明文件为空
+            dictionary ??= new Dictionary<string, object>();
 
             // 解析1. 解析channels
             // 首先获取镜像仓库
             UserDataUtil userDataUtil = UserDataUtil.GetInstance();
             DataPackageManagerMirrorRepository dataPackageManagerMirrorRepository =
-                userDataUtil.DataPackageManagerMirrorRepositoryUtil.DataPackageManagerMirrorRepository;
+                userDataUtil.DataMirrorRepositoryUtil.DataPackageManagerMirrorRepository;
             List<Mirror> condaMirrorRepository = dataPackageManagerMirrorRepository.CondaMirrorRepository;
             Dictionary<string, Mirror> condaMirrorRepositoryDictionary =
                 UserDataUtil.MirrorListConvertToDictionary(condaMirrorRepository);
-            // 如果解析失败，则用官方默认值["default"]代替
+            // 如果解析失败，则初始化Channels
             if (dictionary.ContainsKey("channels") && dictionary["channels"] is List<object> channelsInPropertyFile)
             {
                 Channels = new ObservableCollection<Mirror>();
@@ -271,7 +326,7 @@ namespace Mirrors_All_in_One.Common
             }
             else
             {
-                Channels = new ObservableCollection<Mirror> { new Mirror("default") };
+                Channels = new ObservableCollection<Mirror>();
             }
 
             // 解析2. 解析show_channel_urls
@@ -307,31 +362,95 @@ namespace Mirrors_All_in_One.Common
 
             // 容许解析失败，使用了官方默认值来代替解析失败的值
             // 解析失败的情况有：属性不存在、属性类型不一致
-            return CondaPropertyState.Valid;
+            PropertyFileState = Valid;
+            return true;
         }
 
         /// <summary>
-        /// Conda配置文件的状态枚举类
-        /// 1. 文件不存在    => NotFound
-        /// 2. 文件存在，解析失败    => Error
-        /// 3. 文件存在，解析成功，数据加载成功 => Valid
+        /// 将当前类中的通道列表保存至配置文件
         /// </summary>
-        public enum CondaPropertyState
+        /// <returns></returns>
+        public bool SaveChannelsToPropertyFile()
         {
-            /// <summary>
-            /// 文件存在，且解析成功
-            /// </summary>
-            Valid,
+            return SaveToPropertyFile(true, false);
+        }
 
-            /// <summary>
-            /// 文件不存在
-            /// </summary>
-            NotFound,
+        /// <summary>
+        /// 将当前类中的其他属性（除列表外）保存至配置文件
+        /// </summary>
+        /// <returns></returns>
+        private bool SaveOthersToPropertyFile()
+        {
+            return SaveToPropertyFile(false, true);
+        }
 
-            /// <summary>
-            /// 文件存在，但解析错误
-            /// </summary>
-            Error,
+        private bool SaveToPropertyFile(bool saveChannels, bool saveOthers)
+        {
+            try
+            {
+                // 准备工作1：初始化yaml文件解析器
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(LowerCaseNamingConvention.Instance)
+                    .Build();
+                // 准备工作2：获取yaml文件内容
+                string yamlString = "";
+                if (File.Exists(PropertyPath))
+                {
+                    yamlString = File.ReadAllText(PropertyPath);
+                }
+
+                // 准备工作3：解析yaml文本为字典对象
+                Dictionary<string, object> dictionary;
+                dictionary = deserializer.Deserialize<Dictionary<string, object>>(yamlString);
+
+                // 如果dictionary为空，则说明文件为空，需要初始化
+                dictionary ??= new Dictionary<string, object>();
+
+                // 操作1：将最新的镜像仓库列表写入字典
+                if (saveChannels)
+                {
+                    dictionary["channels"] = _channels.Select(mirror => mirror.Channel).ToList();
+                    // 操作2：将字典转换为yaml文本
+                }
+
+                // 操作2：将各种额外属性写入字典
+                if (saveOthers)
+                {
+                    dictionary["show_channel_urls"] = _showChannelUrls;
+                    dictionary["ssl_verify"] = _sslVerify;
+                    dictionary["always_yes"] = _alwaysYes;
+                }
+                
+                // 操作3：将字典转换为yaml文本
+                var serializer = new SerializerBuilder()
+                    .WithNamingConvention(LowerCaseNamingConvention.Instance)
+                    .WithIndentedSequences()
+                    .Build();
+                yamlString = serializer.Serialize(dictionary);
+
+                // 如果文件所在目录不存在，则创建目录
+                FileUtil.CreateDirectoryByFilePath(PropertyPath);
+                // 将字符串写入文件                
+                File.WriteAllText(PropertyPath, yamlString, Encoding.UTF8);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                PropertyFileState = Error;
+                return false;
+            }
+
+            PropertyFileState = Valid;
+            return true;
+        }
+
+        /// <summary>
+        /// 重新加载配置文件
+        /// </summary>
+        /// <returns></returns>
+        public bool ReloadProperty()
+        {
+            return LoadProperty();
         }
     }
 
@@ -341,7 +460,7 @@ namespace Mirrors_All_in_One.Common
     public class PackageManagerNpm : PackageManagerBase
     {
         /// <summary>
-        /// Conda镜像的配置地址，默认为 "C:\Users\{current_username}\.npmrc"
+        /// Npm的配置地址，默认为 "C:\Users\{current_username}\.npmrc"
         /// </summary>
         private string _propertyPath;
 
@@ -351,11 +470,14 @@ namespace Mirrors_All_in_One.Common
             set
             {
                 _propertyPath = value;
+                // 同时保存到配置文件
+                UserDataUtil.GetInstance().DataPackageManagerUtil.ModifyPackageManager(this);
                 RaisePropertyChanged();
             }
         }
 
-        public PackageManagerNpm(string remark = "", string path = "") : base(PackageManagerType.Npm, remark)
+        public PackageManagerNpm(string uuid, string remark = "", string path = "") : base(uuid, PackageManagerType.Npm,
+            remark)
         {
             if (path.Equals(""))
             {
@@ -365,6 +487,12 @@ namespace Mirrors_All_in_One.Common
 
             _propertyPath = path;
         }
+
+        public PackageManagerNpm(DataPackageManagerNpm dataPackageManagerNpm) : base(
+            dataPackageManagerNpm.Uuid, PackageManagerType.Npm, dataPackageManagerNpm.Remark)
+        {
+            PropertyPath = dataPackageManagerNpm.PropertyFilePath;
+        }
     }
 
     /// <summary>
@@ -372,8 +500,64 @@ namespace Mirrors_All_in_One.Common
     /// </summary>
     public class PackageManagerPip : PackageManagerBase
     {
-        public PackageManagerPip(string remark = "") : base(PackageManagerType.Pip, remark)
+        /// <summary>
+        /// Pip的配置地址，默认为 "C:\Users\{current_username}\AppData\Roaming\pip\pip.ini"
+        /// </summary>
+        private string _propertyPath;
+
+        public string PropertyPath
         {
+            get => _propertyPath;
+            set
+            {
+                _propertyPath = value;
+                // 同时保存到配置文件
+                UserDataUtil.GetInstance().DataPackageManagerUtil.ModifyPackageManager(this);
+                RaisePropertyChanged();
+            }
         }
+
+        public PackageManagerPip(string uuid, string remark = "", string path = "") : base(uuid, PackageManagerType.Pip,
+            remark)
+        {
+            if (path.Equals(""))
+            {
+                var username = Environment.UserName;
+                path = $"C:\\Users\\{username}\\AppData\\Roaming\\pip\\pip.ini";
+            }
+
+            _propertyPath = path;
+        }
+
+        public PackageManagerPip(DataPackageManagerPip dataPackageManagerPip) : base(
+            dataPackageManagerPip.Uuid, PackageManagerType.Npm, dataPackageManagerPip.Remark)
+        {
+            PropertyPath = dataPackageManagerPip.PropertyFilePath;
+        }
+    }
+
+
+    /// <summary>
+    /// Conda配置文件的状态枚举类
+    /// 1. 文件不存在    => NotFound
+    /// 2. 文件存在，解析失败    => Error
+    /// 3. 文件存在，解析成功，数据加载成功 => Valid
+    /// </summary>
+    public enum CondaPropertyState
+    {
+        /// <summary>
+        /// 文件存在，且解析成功
+        /// </summary>
+        Valid,
+
+        /// <summary>
+        /// 文件不存在或者文件被占用
+        /// </summary>
+        FileError,
+
+        /// <summary>
+        /// 其他错误
+        /// </summary>
+        Error,
     }
 }
