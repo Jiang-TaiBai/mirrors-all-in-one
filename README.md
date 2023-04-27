@@ -26,7 +26,7 @@ MAIO是一个用于配置包管理器镜像的可视化软件，目前支持的�
 1. Conda：于`2023年4月27日02:39:55`基本开发完毕
 
 <details>
-<summary><h2 style="display: inline-block">4. 项目中引用的镜像列表</h2></summary>
+<summary><h2 style="display: inline">4. 项目中引用的镜像列表</h2></summary>
 
 > 排序规则：按中文拼音字母排序
 >
