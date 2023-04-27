@@ -166,12 +166,12 @@ https://conda.io/projects/conda/en/latest/user-guide/configuration/use-condarc.h
                                     MinHeight="30" Margin="0,5">
                             <!-- 工具栏 -->
                             <!-- 多选框，可多选镜像仓库中的镜像添加 -->
+                            <!-- 由于未知BUG，不再使用：SelectedItem="{Binding PackageManagerCondaMirrorSettingPageViewModel.SelectedPackageManagerCondaMirrorOptions}" -->
                             <hc:CheckComboBox x:Name="SelectToReadyEnableMirrorComboBox"
                                               Style="{StaticResource CheckComboBoxExtend}" Width="300"
                                               ItemsSource="{Binding PackageManagerCondaMirrorSettingPageViewModel.PackageManagerCondaMirrorRepository}"
                                               DisplayMemberPath="DisplayName" SelectedValuePath="Channel"
                                               hc:InfoElement.Placeholder="请选择待添加的镜像"
-                                              SelectedItem="{Binding PackageManagerCondaMirrorSettingPageViewModel.SelectedPackageManagerCondaMirrorOptions}"
                                               ShowClearButton="True" ShowSelectAllButton="True" MaxDropDownHeight="500" />
                             <!-- 添加镜像按钮 -->
                             <Button Width="30" BorderThickness="0" Padding="5"

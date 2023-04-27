@@ -65,6 +65,8 @@ namespace Mirrors_All_in_One.View
                 // 设置窗口的标题
                 Title = "新建镜像",
             };
+            // 设置窗口的位置
+            ResetModalWindowPosition(modalWindow);
 
             // 设置窗口的窗口样式为模态窗口
             if (modalWindow.ShowDialog() == true)
