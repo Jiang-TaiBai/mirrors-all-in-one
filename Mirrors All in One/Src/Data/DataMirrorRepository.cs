@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
 using Mirrors_All_in_One.Common;
@@ -77,7 +78,7 @@ namespace Mirrors_All_in_One.Data
             {
                 DataPackageManagerMirrorRepository = new DataPackageManagerMirrorRepository();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return false;
             }
@@ -90,7 +91,11 @@ namespace Mirrors_All_in_One.Data
         /// </summary>
         public void SaveData()
         {
-            var options = new JsonSerializerOptions { WriteIndented = true };
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            };
 
             Dictionary<string, List<SerializableMirror>> data = new Dictionary<string, List<SerializableMirror>>()
             {

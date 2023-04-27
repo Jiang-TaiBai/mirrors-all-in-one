@@ -92,7 +92,7 @@ namespace Mirrors_All_in_One.Data
                     Directory.CreateDirectory(_userDataPath);
                 }
             }
-            catch (UnauthorizedAccessException e)
+            catch (UnauthorizedAccessException)
             {
                 MessageBox.Show("无法访问数据文件夹，请检查是否有权限访问当前程序所在文件夹", "错误", MessageBoxButton.OK,
                     MessageBoxImage.Error);

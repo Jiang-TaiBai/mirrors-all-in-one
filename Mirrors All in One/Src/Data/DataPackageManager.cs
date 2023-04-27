@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Mirrors_All_in_One.Common;
@@ -49,28 +50,6 @@ namespace Mirrors_All_in_One.Data
                     // 从 JSON 文件反序列化为对象
                     List<DataPackageManagerBase> data =
                         JsonSerializer.Deserialize<List<DataPackageManagerBase>>(jsonData);
-                    // DataPackageManagers = new List<DataPackageManagerBase>();
-                    // foreach (DataPackageManagerBase data in dataList)
-                    // {
-                    //     switch (data.PackageManagerType)
-                    //     {
-                    //         // case PackageManagerType.Conda:
-                    //         //     DataPackageManagers.Add(DataPackageManagerBase
-                    //         //         .ToDataPackageManager(JsonSerializer.Deserialize<PackageManagerConda>(data)));
-                    //         //     break;
-                    //         // case PackageManagerType.Npm:
-                    //         //     DataPackageManagers.Add(DataPackageManagerBase
-                    //         //         .ToDataPackageManager(JsonSerializer.Deserialize<PackageManagerNpm>(data)));
-                    //         //     break;
-                    //         // case PackageManagerType.Pip:
-                    //         //     DataPackageManagers.Add(DataPackageManagerBase
-                    //         //         .ToDataPackageManager(JsonSerializer.Deserialize<PackageManagerPip>(data)));
-                    //         //     break;
-                    //         default:
-                    //             // 如果类型不匹配，就不添加
-                    //             break;
-                    //     }
-                    // }
                     DataPackageManagers = data;
                 }
                 else
@@ -82,7 +61,7 @@ namespace Mirrors_All_in_One.Data
             {
                 DataPackageManagers = new List<DataPackageManagerBase>();
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // throw new Exception("加载数据文件时出错：" + e.Message);
                 return false;
@@ -108,9 +87,10 @@ namespace Mirrors_All_in_One.Data
         /// <returns></returns>
         private bool SaveData()
         {
-            var options = new JsonSerializerOptions
+            var options = new JsonSerializerOptions()
             {
                 WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             };
 
             string jsonData =

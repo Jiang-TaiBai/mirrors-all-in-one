@@ -1,19 +1,19 @@
 # <div align="center">Mirrors All in One(MAIO)</div>
 
-<div align="center">
+<div style="text-align: center">
   <img src="https://img.shields.io/badge/Build-passing-%2396C40F" alt="Build-passing"/>
   <img src="https://img.shields.io/badge/Version-1.0.0-%231081C1" alt="Version-1.0.0"/>
   <img src="https://img.shields.io/badge/License-Apache_2.0-%2396C40F" alt="License-Apache2.0"/>
   <img src="https://img.shields.io/badge/PoweredBy-Jiang_Liu-%2396C40F" alt="PoweredBy-Jiang_Liu"/>
 </div>
 
-## 背景介绍
+## 1. 背景介绍
 
 每当我需要配置包管理器的镜像时，我都会去搜索一下（包括命令和镜像地址），然后复制粘贴，再去配置，
 这样的过程很繁琐，而且有时会出现一些错误，比如镜像地址过期了（例如中科大的Anaconda镜像源已无法使用）。
 所以我就想着能不能写一个程序，来帮我完成这些繁琐的工作，于是就有了这个项目。
 
-## 项目介绍
+## 2. 项目介绍
 
 MAIO是一个用于配置包管理器镜像的可视化软件，目前支持的包管理器有：Conda（后续会支持更多的包管理器）。
 
@@ -21,17 +21,18 @@ MAIO是一个用于配置包管理器镜像的可视化软件，目前支持的�
 
 项目基于WPF开发，使用C#语言编写。（由于本人是一个C#新手，所以代码可能会有一些不规范的地方，还请见谅）
 
-## 项目所支持的包管理器
+## 3. 项目所支持的包管理器
 
-- Conda：于2023年4月27日02:39:55基本开发完毕
+1. Conda：于`2023年4月27日02:39:55`基本开发完毕
 
-## 项目中引用的镜像列表
+<details>
+<summary><h2 style="display: inline-block">4. 项目中引用的镜像列表</h2></summary>
 
 > 排序规则：按中文拼音字母排序
 >
 > 声明：所引用的大学简称仅为了精简镜像备注，不代表本人对该大学的任何态度，若有冒犯，请及时联系我，我会及时更改，谢谢！
 
-### Anaconda
+### 4.1 Anaconda镜像列表
 
 > 资料来源说明
 
@@ -72,6 +73,7 @@ MAIO是一个用于配置包管理器镜像的可视化软件，目前支持的�
 
 - 北大main：[https://mirrors.pku.edu.cn/anaconda/pkgs/main](https://mirrors.pku.edu.cn/anaconda/pkgs/main)
 - 北大r：[https://mirrors.pku.edu.cn/anaconda/pkgs/r](https://mirrors.pku.edu.cn/anaconda/pkgs/r)
+- 北大msys2：[https://mirrors.pku.edu.cn/anaconda/pkgs/msys2](https://mirrors.pku.edu.cn/anaconda/pkgs/msys2)
 - 北大附加库：[https://mirrors.pku.edu.cn/anaconda/cloud](https://mirrors.pku.edu.cn/anaconda/cloud)
 
 #### 04. 豆瓣开源镜像站
@@ -178,9 +180,19 @@ MAIO是一个用于配置包管理器镜像的可视化软件，目前支持的�
 - 浙大msys2：[https://mirrors.zju.edu.cn/anaconda/pkgs/msys2](https://mirrors.zju.edu.cn/anaconda/pkgs/msys2)
 - 浙大附加库：[https://mirrors.zju.edu.cn/anaconda/cloud/](https://mirrors.zju.edu.cn/anaconda/cloud/)
 
-## 项目截图
+</details>
 
-## 版权声明
+## 5. 项目截图
+
+> Anaconda启用镜像
+
+![](https://gcore.jsdelivr.net/gh/Jiang-TaiBai/pic-go@main/img/%E5%90%AF%E7%94%A8%E9%95%9C%E5%83%8F%E6%93%8D%E4%BD%9C%E7%A4%BA%E6%84%8F%E5%9B%BE20230427-161359.gif)
+
+> Anaconda镜像仓库
+
+![](https://gcore.jsdelivr.net/gh/Jiang-TaiBai/pic-go@main/img/%E9%95%9C%E5%83%8F%E4%BB%93%E5%BA%93%E6%93%8D%E4%BD%9C%E7%A4%BA%E6%84%8F%E5%9B%BE20230427-161943.gif)
+
+## 6. 版权声明
 
 项目采用[Apache License 2.0开源协议](https://apache.org/licenses/LICENSE-2.0.txt)
 
